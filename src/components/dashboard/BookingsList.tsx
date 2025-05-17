@@ -65,7 +65,15 @@ interface Booking {
   notes?: string;
 }
 
-export default function BookingsList() {
+interface BookingsListProps {
+  limit?: number;
+  showFilters?: boolean;
+}
+
+export default function BookingsList({
+  limit,
+  showFilters = true,
+}: BookingsListProps = {}) {
   // Mock data for bookings
   const [bookings, setBookings] = useState<Booking[]>([
     {
@@ -112,7 +120,7 @@ export default function BookingsList() {
 
   // State for search and filters
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [rescheduleDate, setRescheduleDate] = useState<Date | undefined>(
     undefined,
@@ -128,18 +136,24 @@ export default function BookingsList() {
       booking.customerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.service.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = statusFilter ? booking.status === statusFilter : true;
+    const matchesStatus =
+      statusFilter === "all" ? true : booking.status === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
 
+  // Apply limit if provided
+  const limitedBookings = limit
+    ? filteredBookings.slice(0, limit)
+    : filteredBookings;
+
   // Upcoming bookings (confirmed or pending)
-  const upcomingBookings = filteredBookings.filter(
+  const upcomingBookings = limitedBookings.filter(
     (booking) => booking.status === "confirmed" || booking.status === "pending",
   );
 
   // Past bookings (completed or cancelled)
-  const pastBookings = filteredBookings.filter(
+  const pastBookings = limitedBookings.filter(
     (booking) =>
       booking.status === "completed" || booking.status === "cancelled",
   );
@@ -314,37 +328,39 @@ export default function BookingsList() {
       <CardContent>
         <div className="flex flex-col space-y-4">
           {/* Search and filter controls */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-between">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-              <Input
-                placeholder="Search bookings..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+          {showFilters && (
+            <div className="flex flex-col sm:flex-row gap-4 justify-between">
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                <Input
+                  placeholder="Search bookings..."
+                  className="pl-8"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value) => setStatusFilter(value)}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <div className="flex items-center gap-2">
+                      <Filter className="h-4 w-4" />
+                      <SelectValue placeholder="Filter by status" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => setStatusFilter(value)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <div className="flex items-center gap-2">
-                    <Filter className="h-4 w-4" />
-                    <SelectValue placeholder="Filter by status" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Statuses</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          )}
 
           {/* Tabs for upcoming and past bookings */}
           <Tabs defaultValue="upcoming" className="w-full">
@@ -393,7 +409,6 @@ export default function BookingsList() {
                       mode="single"
                       selected={rescheduleDate}
                       onSelect={setRescheduleDate}
-                      initialFocus
                     />
                   </PopoverContent>
                 </Popover>

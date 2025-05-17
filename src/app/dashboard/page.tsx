@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { MainNav } from "@/components/layout/MainNav";
+import Link from "next/link";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -27,24 +29,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Dashboard Header */}
-      <header className="border-b bg-card">
-        <div className="container flex h-16 items-center justify-between px-4">
-          <h1 className="text-2xl font-bold">TempoBook</h1>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm">
-              <SettingsIcon className="mr-2 h-4 w-4" />
-              Settings
-            </Button>
-            <Avatar>
-              <AvatarImage
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=John"
-                alt="User"
-              />
-              <AvatarFallback>JD</AvatarFallback>
-            </Avatar>
-          </div>
-        </div>
-      </header>
+      <MainNav isLoggedIn={true} />
 
       {/* Dashboard Layout */}
       <div className="container grid grid-cols-1 gap-6 px-4 py-6 md:grid-cols-[240px_1fr]">
@@ -75,6 +60,12 @@ export default function DashboardPage() {
               <UserIcon className="mr-2 h-4 w-4" />
               Customers
             </Button>
+            <Link href="/services" className="mt-2">
+              <Button variant="ghost" className="w-full justify-start">
+                <SettingsIcon className="mr-2 h-4 w-4" />
+                Services
+              </Button>
+            </Link>
           </nav>
         </aside>
 

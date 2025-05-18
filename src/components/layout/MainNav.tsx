@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
@@ -21,13 +21,55 @@ import {
   UserIcon,
   ClipboardListIcon,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 interface MainNavProps {
   isLoggedIn?: boolean;
 }
 
-export function MainNav({ isLoggedIn = false }: MainNavProps) {
+export function MainNav({ isLoggedIn: propIsLoggedIn }: MainNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function getUser() {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session?.user) {
+          const { data: userData } = await supabase
+            .from("users")
+            .select("name")
+            .eq("id", session.user.id)
+            .single();
+
+          setUser({
+            ...session.user,
+            name: userData?.name || session.user.email?.split("@")[0] || "User",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    getUser();
+  }, []);
+
+  const isLoggedIn = propIsLoggedIn || !!user;
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/auth");
+    router.refresh();
+  };
 
   const routes = [
     {
@@ -94,19 +136,21 @@ export function MainNav({ isLoggedIn = false }: MainNavProps) {
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage
-                      src="https://api.dicebear.com/7.x/avataaars/svg?seed=Anna"
+                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || "User"}`}
                       alt="User"
                     />
-                    <AvatarFallback>AK</AvatarFallback>
+                    <AvatarFallback>
+                      {user?.name?.charAt(0) || "U"}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">Anna Kowalska</p>
+                    <p className="font-medium">{user?.name || "User"}</p>
                     <p className="w-[200px] truncate text-sm text-muted-foreground">
-                      anna@salonania.com
+                      {user?.email || ""}
                     </p>
                   </div>
                 </div>
@@ -122,16 +166,16 @@ export function MainNav({ isLoggedIn = false }: MainNavProps) {
                     </DropdownMenuItem>
                   ))}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/auth" className="flex items-center">
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <div className="flex items-center">
                     <LogOutIcon className="mr-2 h-4 w-4" /> Log out
-                  </Link>
+                  </div>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <div className="flex items-center gap-2">
-              <Link href="/auth">
+              <Link href="/auth?tab=signin">
                 <Button variant="outline" size="sm">
                   Sign In
                 </Button>

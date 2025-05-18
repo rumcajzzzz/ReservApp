@@ -74,6 +74,8 @@ export default function ServicesPage() {
     service.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleAddService = async () => {
     try {
       setIsLoading(true);
@@ -143,7 +145,7 @@ export default function ServicesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <MainNav isLoggedIn={true} />
+      <MainNav />
 
       <div className="container py-8 px-4">
         <div className="flex justify-between items-center mb-6">

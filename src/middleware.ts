@@ -1,56 +1,34 @@
+import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const res = NextResponse.next();
+  const supabase = createMiddlewareClient({ req: request, res });
 
-  // Skip middleware for static assets and public routes
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/api") ||
-    pathname.startsWith("/static") ||
-    pathname === "/" ||
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/book")
-  ) {
-    return NextResponse.next();
-  }
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  try {
-    // Create a Supabase client
-    const supabase = createClient();
+  // Check auth condition
+  const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
+  const isPublicPage =
+    request.nextUrl.pathname === "/" ||
+    request.nextUrl.pathname.startsWith("/book");
 
-    // Check if the user is authenticated
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    // If the user is not authenticated and trying to access a protected route
-    if (!session) {
-      const redirectUrl = new URL("/auth", request.url);
-      redirectUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(redirectUrl);
-    }
-
-    // User is authenticated, allow access to protected routes
-    return NextResponse.next();
-  } catch (error) {
-    console.error("Middleware error:", error);
-    // In case of any error, redirect to the login page
+  // If not authenticated and trying to access protected route
+  if (!session && !isAuthPage && !isPublicPage) {
     return NextResponse.redirect(new URL("/auth", request.url));
   }
+
+  // If authenticated and trying to access auth page
+  if (session && isAuthPage) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  return res;
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*.svg).*)"],
 };

@@ -145,30 +145,6 @@ export function AuthForm({ defaultTab = "signin" }: AuthFormProps) {
     }
   };
 
-  const handleOAuthSignIn = async (provider: "google" | "github") => {
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (error) {
-        throw error;
-      }
-    } catch (error: any) {
-      toast({
-        title: "Sign in failed",
-        description: error.message || "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-    }
-  };
-
   return (
     <Tabs
       value={activeTab}
@@ -230,40 +206,6 @@ export function AuthForm({ defaultTab = "signin" }: AuthFormProps) {
                 )}
               </Button>
             </form>
-
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <Separator className="w-full" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => handleOAuthSignIn("google")}
-                >
-                  <Icons.google className="mr-2 h-4 w-4" />
-                  Google
-                </Button>
-                <Button
-                  variant="outline"
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => handleOAuthSignIn("github")}
-                >
-                  <Icons.gitHub className="mr-2 h-4 w-4" />
-                  GitHub
-                </Button>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </TabsContent>
@@ -318,40 +260,6 @@ export function AuthForm({ defaultTab = "signin" }: AuthFormProps) {
                 )}
               </Button>
             </form>
-
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <Separator className="w-full" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => handleOAuthSignIn("google")}
-                >
-                  <Icons.google className="mr-2 h-4 w-4" />
-                  Google
-                </Button>
-                <Button
-                  variant="outline"
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => handleOAuthSignIn("github")}
-                >
-                  <Icons.gitHub className="mr-2 h-4 w-4" />
-                  GitHub
-                </Button>
-              </div>
-            </div>
           </CardContent>
           <CardFooter className="flex justify-center">
             <p className="text-xs text-muted-foreground">

@@ -218,7 +218,7 @@ export default function AvailabilityPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <MainNav isLoggedIn={true} />
+      <MainNav />
 
       <div className="container py-8 px-4">
         <div className="flex justify-between items-center mb-6">

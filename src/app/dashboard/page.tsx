@@ -29,7 +29,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Dashboard Header */}
-      <MainNav isLoggedIn={true} />
+      <MainNav />
 
       {/* Dashboard Layout */}
       <div className="container grid grid-cols-1 gap-6 px-4 py-6 md:grid-cols-[240px_1fr]">

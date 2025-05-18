@@ -74,11 +74,32 @@ export default function ServicesPage() {
     service.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const handleAddService = () => {
-    const id = (services.length + 1).toString();
-    setServices([...services, { id, ...newService }]);
-    setNewService({ name: "", description: "", duration: 30, price: 0 });
-    setIsAddDialogOpen(false);
+  const handleAddService = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/services", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newService),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to add service");
+      }
+
+      setServices([...services, data.service]);
+      setNewService({ name: "", description: "", duration: 30, price: 0 });
+      setIsAddDialogOpen(false);
+    } catch (err: any) {
+      console.error("Error adding service:", err);
+      alert(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEditService = () => {
